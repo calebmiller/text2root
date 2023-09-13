@@ -47,7 +47,7 @@ int main()
 				ADC.push_back(hg);
 				try{
 					int temp = boost::lexical_cast<int>(toa_LSB);
-					ToA.push_back(2*temp);
+					ToA.push_back(temp);
 				}
 				catch(...){
 					ToA.push_back(-1);
