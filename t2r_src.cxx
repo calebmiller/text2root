@@ -6,12 +6,17 @@
 #include <sstream>
 #include <string>
 #include <boost/lexical_cast.hpp>
+#include <chrono>
 
 int main()
 {	
+	auto start = std::chrono::high_resolution_clock::now();
+
 	std::ifstream testFile("Run1_list.txt");	
 	std::string line;
 	
+	auto loadf = std::chrono::high_resolution_clock::now(); 
+
 	double ts=0;
 	std::vector<int> chan;	
 	std::vector<int> ADC;	
@@ -73,6 +78,16 @@ int main()
 			}	
 		}
 	}
+	auto loop = std::chrono::high_resolution_clock::now(); 
 	mytree->Write();
 	fout->Close();
+	auto write = std::chrono::high_resolution_clock::now(); 
+
+	auto lt = std::chrono::duration_cast<std::chrono::microseconds>(loadf - start);
+	auto ot = std::chrono::duration_cast<std::chrono::microseconds>(loop - loadf);
+	auto wt = std::chrono::duration_cast<std::chrono::microseconds>(write - loop);
+
+	std::cout<<"load time :"<<lt.count() << std::endl;
+	std::cout<<"loop time :"<<ot.count() << std::endl;
+	std::cout<<"write time :"<<wt.count() << std::endl;
 }
