@@ -7,9 +7,46 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 
-int main()
+const int HG_CUT=200;
+const int CHMAP[64] = {10,8,7,50,12,11,14,2,1,15,0,5,4,19,6,9,25,21,24,13,30,17,31,27,18,16,28,23,26,44,20,22,40,41,52,43,58,45}
+						0,1,2, 3, 4, 5, 6 7 8  9 10111213 141516 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
+
+
+int getToA(std::string toa_LSB)
+{
+	try{
+		int temp = boost::lexical_cast<int>(toa_LSB);
+		return temp;
+	}
+	catch(...){
+		return -1;
+	}
+
+}
+void fillVec(std::vector<int>& chan, std::vector<int>& ADC, std::vector<int>& ToA, int ch, int hg, std::string toa_LSB)
+{
+	if(hg>HG_CUT){
+		chan.push_back(ch);
+		ADC.push_back(hg);
+		ToA.push_back(getToA(toa_LSB));
+	}
+
+}
+void writeEvent((std::vector<int>& chan, std::vector<int>& ADC, std::vector<int>& ToA)
+{
+
+ mytree->Fill();
+}
+int main(int argc, char** argv)
 {	
-	std::ifstream testFile("Run1_list.txt");	
+	if(argc != 2){
+		std::cout<<"Incorrect number of args"<<std::endl;
+		std::cout<<"./txt2root /path/to/file"<<std::endl;
+		return 0;
+	}
+	std::cout<<"Processing "<<argv[1]<<std::endl;
+
+	std::ifstream testFile(argv[1]);	
 	std::string line;
 	
 	double ts=0;
@@ -36,43 +73,23 @@ int main()
 	
 		// Attempt to extract data from the line
 		if (iss >> timestamp >> trgID >> brd >> ch >> lg >> hg >> toa_LSB >> tot_LSB) {
-			if(ADC.size()!=0) mytree->Fill();
+			if(ADC.size()!=0) writeEvent(chan, ADC, ToA)
+
 			chan.clear();
 			ADC.clear();
 			ToA.clear();
 
 			ts=timestamp;
-			if(hg>100){
-				chan.push_back(ch);
-				ADC.push_back(hg);
-				try{
-					int temp = boost::lexical_cast<int>(toa_LSB);
-					ToA.push_back(temp);
-				}
-				catch(...){
-					ToA.push_back(-1);
-				}
-			}
+			fillVec(chan, ADC, ToA, ch, hg, toa_LSB);
 		}
 		else{
-			
  			std::istringstream iss2(line);
 			if (iss2 >> brd >> ch >> lg >> hg >> toa_LSB >> tot_LSB){
-				
-				if(hg>100){
-					chan.push_back(ch);
-					ADC.push_back(hg);
-					try{
-						int temp = boost::lexical_cast<int>(toa_LSB);
-						ToA.push_back(2*temp);
-					}
-					catch(...){
-						ToA.push_back(-1);
-					}
-				}
+				fillVec(chan, ADC, ToA, ch, hg, toa_LSB);
 			}	
 		}
 	}
 	mytree->Write();
 	fout->Close();
+	std::cout<<"Finished"<<std::endl;
 }
