@@ -8,7 +8,7 @@
 #include <boost/lexical_cast.hpp>
 
 const int HG_CUT=200;
-const int CHMAP[64] = {10,8,7,50,12,11,14,2,1,15,0,5,4,19,6,9,25,21,24,13,30,17,31,27,18,16,28,23,26,44,20,22,40,41,52,43,58,45,46,47,32,33,60,35,29,37,38,39,56,57,3,59,34,61,62,63,48,49,36,51,42,53,54,55}
+const int CHMAP[64] = {10,8,7,50,12,11,14,2,1,15,0,5,4,19,6,9,25,21,24,13,30,17,31,27,18,16,28,23,26,44,20,22,40,41,52,43,58,45,46,47,32,33,60,35,29,37,38,39,56,57,3,59,34,61,62,63,48,49,36,51,42,53,54,55};
 //						0,1,2, 3, 4, 5, 6 7 8  9 10111213 141516 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 5051 52 53 54 55 56 57 58 59 60 61 62 63
 
 
@@ -32,10 +32,20 @@ void fillVec(std::vector<int>& chan, std::vector<int>& ADC, std::vector<int>& To
 	}
 
 }
-void writeEvent((std::vector<int>& chan, std::vector<int>& ADC, std::vector<int>& ToA)
+bool writeEvent(std::vector<int>& chan, std::vector<int>& ADC, std::vector<int>& ToA)
 {
-
- mytree->Fill();
+	unsigned int vsize = ToA.size();
+	for(unsigned int i =0; i< vsize; i++)
+	{
+		if(ToA[i]>0){
+			int chid=chan[i];
+			for(unsigned int j =0; j< vsize; j++)
+			{
+				if(chan[j]==CHMAP[chid]) return true;  //one good hit in event	
+			}
+		}
+	}
+	return false;
 }
 int main(int argc, char** argv)
 {	
@@ -73,7 +83,7 @@ int main(int argc, char** argv)
 	
 		// Attempt to extract data from the line
 		if (iss >> timestamp >> trgID >> brd >> ch >> lg >> hg >> toa_LSB >> tot_LSB) {
-			if(ADC.size()!=0) writeEvent(chan, ADC, ToA)
+			if(writeEvent(chan, ADC, ToA)) mytree->Fill();
 
 			chan.clear();
 			ADC.clear();
